@@ -1,12 +1,10 @@
 from rest_framework import generics, permissions
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema
 
-from .serializers import SignUpSerializer, SignInSerializer
+from .serializers import SignUpSerializer, SignInSerializer, MeSerializer
 
 class SignUpView(generics.CreateAPIView):
     serializer_class = SignUpSerializer
@@ -31,3 +29,15 @@ class SignInView(generics.GenericAPIView):
             "access": str(refresh.access_token),
             "refresh": str(refresh)
         })
+
+@extend_schema(
+    summary="Retrieve, update, or delete the authenticated user",
+    responses=MeSerializer,
+    auth=[{"bearerAuth": []}],
+)
+class MeView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MeSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_object(self):
+        return self.request.user
