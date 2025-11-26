@@ -39,6 +39,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+AUTH_USER_MODEL = "api.User"
 
 # Application definition
 
@@ -54,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'drf_spectacular',
     'drf_spectacular_sidecar',
+    'api'
 ]
 
 MIDDLEWARE = [
