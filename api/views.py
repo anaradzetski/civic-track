@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema
+from .models import User
 
 from .serializers import SignUpSerializer, SignInSerializer, MeSerializer
 
@@ -17,10 +18,9 @@ class SignInView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data.get("username")
         password = serializer.validated_data.get("password")
         email = serializer.validated_data.get("email")
-        user = authenticate(username=username, password=password, email=email)
+        user = authenticate(password=password, email=email)
         if user is None:
             return Response({"error": "Invalid credentials"}, status=400)
         
