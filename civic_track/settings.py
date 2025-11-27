@@ -93,7 +93,17 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny"
     ],
-    "DEFAULT_SCHEMA_CLASS": 'drf_spectacular.openapi.AutoSchema'
+    "DEFAULT_SCHEMA_CLASS": 'drf_spectacular.openapi.AutoSchema',
+
+    "DEFAULT_RENDERER_CLASSES": (
+        'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ),
+    "DEFAULT_PARSER_CLASSES": (
+        'djangorestframework_camel_case.parser.CamelCaseJSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ),
 }
 
 SPECTACULAR_SETTINGS = {
