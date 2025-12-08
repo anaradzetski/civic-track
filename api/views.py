@@ -3,7 +3,10 @@ from django.contrib.auth import authenticate
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from .models import Report
+
+from api.choices import ReportStatusEnum
+
+from .models import Report, ReportStatus
 from rest_framework import viewsets
 
 from .serializers import ReportSerializer, SignUpSerializer, SignInSerializer, MeSerializer
@@ -12,6 +15,9 @@ class SignUpView(generics.CreateAPIView):
     serializer_class = SignUpSerializer
     permission_classes = (permissions.AllowAny,)
 
+@extend_schema(
+    auth = [{"bearerAuth": []}]
+)
 class SignInView(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = SignInSerializer
@@ -52,4 +58,5 @@ class ReportViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticated()]
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        report = serializer.save(author=self.request.user)
+        ReportStatus.objects.create(report=report, status_name=ReportStatusEnum.NEW.value)

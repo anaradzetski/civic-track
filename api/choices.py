@@ -11,7 +11,7 @@ class ReportType(Enum):
     ENVIRONMENT = "environment"
     OTHER = "other"
 
-class ReportStatus(Enum):
+class ReportStatusEnum(Enum):
     NEW = "new"
     IN_PROGRESS = "in_progress"
     RESOLVED = "resolved"

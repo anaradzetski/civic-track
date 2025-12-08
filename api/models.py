@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from api.choices import AssignedUnit, ReportPriority, ReportType
+from api.choices import AssignedUnit, ReportPriority, ReportStatusEnum, ReportType
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -16,7 +16,6 @@ class Report(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     description = models.TextField()
-    current_status_id = models.IntegerField()
     location = models.CharField(max_length=200)
     
     PRIORITY_CHOICES = [
@@ -43,3 +42,16 @@ class Report(models.Model):
         choices=ASSIGNED_UNIT_CHOICES
     )
     created_at = models.DateField(auto_now_add=True)
+
+class ReportStatus(models.Model):
+    report = models.OneToOneField(to=Report, on_delete=models.CASCADE, related_name="status")
+    
+    STATUS_CHOICES = [
+        (status.value, status.name)
+        for status in ReportStatusEnum
+    ]
+
+    status_name = models.CharField(max_length=11, choices=STATUS_CHOICES)
+    moderator_comment = models.TextField(blank=True, null=True)
+    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    modified_at = models.DateField(auto_now=True)
