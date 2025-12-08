@@ -2,10 +2,11 @@ from rest_framework import generics, permissions
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from drf_spectacular.utils import extend_schema
-from .models import User
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from .models import Report
+from rest_framework import viewsets
 
-from .serializers import SignUpSerializer, SignInSerializer, MeSerializer
+from .serializers import ReportSerializer, SignUpSerializer, SignInSerializer, MeSerializer
 
 class SignUpView(generics.CreateAPIView):
     serializer_class = SignUpSerializer
@@ -30,14 +31,25 @@ class SignInView(generics.GenericAPIView):
             "refresh": str(refresh)
         })
 
-@extend_schema(
-    summary="Retrieve, update, or delete the authenticated user",
-    responses=MeSerializer,
-    auth=[{"bearerAuth": []}],
-)
 class MeView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = MeSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
+
+@extend_schema_view(
+    list=extend_schema(auth=[{"bearerAuth": []}]),
+    retrieve=extend_schema(auth=[{"bearerAuth": []}]),
+)
+class ReportViewSet(viewsets.ModelViewSet):
+    queryset = Report.objects.all().order_by('-created_at')
+    serializer_class = ReportSerializer
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
