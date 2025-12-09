@@ -68,6 +68,6 @@ class ReportViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def me(self, request):
-        reports = Report.objects.filter(author=request.user)
+        reports = Report.objects.filter(author=request.user).order_by("-created_at")
         serializer = self.get_serializer(reports, many=True)
         return Response(serializer.data)
