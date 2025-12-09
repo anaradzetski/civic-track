@@ -1,4 +1,4 @@
-from .models import User
+from .models import Report, User
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 
@@ -29,3 +29,22 @@ class MeSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "username", "email", "first_name", "last_name"]
         read_only_fields = ["id"]
+
+class ReportSerializer(serializers.ModelSerializer):
+    author = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Report
+        fields = ['id', 'title', 'description', 'location', 'priority', 'type', 'status', 'author', 'assigned_unit', 'created_at']
+        read_only_fields = ['status', 'author', 'assigned_unit', 'created_at']
+
+    def get_author(self, obj):
+        if obj.author:
+            return f"{obj.author.first_name} {obj.author.last_name}".strip()
+        return ""
+    
+    def get_status(self, obj):
+        if obj.status:
+            return obj.status.status_name
+        return ""

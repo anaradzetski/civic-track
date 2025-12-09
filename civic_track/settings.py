@@ -111,8 +111,11 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Django REST API documentation',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
-        "AUTHENTICATION_WHITELIST": [],
     "SERVE_PUBLIC": False,
+    'SERVE_AUTHENTICATION': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
 
     "SECURITY": [
         {"bearerAuth": []}
