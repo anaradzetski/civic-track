@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from api.choices import AssignedUnit, ReportPriority, ReportStatusEnum, ReportType
 
@@ -16,7 +17,12 @@ class Report(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     description = models.TextField()
-    location = models.CharField(max_length=200)
+    longitude = models.FloatField(
+        validators=[MinValueValidator(-180.0), MaxValueValidator(180.0)]
+    )
+    latitude = models.FloatField(
+        validators=[MinValueValidator(-90.0), MaxValueValidator(90.0)]
+    )
     
     PRIORITY_CHOICES = [
         (priority.value, priority.name)
