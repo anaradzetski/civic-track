@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -52,6 +53,7 @@ class MeView(generics.RetrieveUpdateDestroyAPIView):
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all().order_by('-created_at')
     serializer_class = ReportSerializer
+    parser_classes = (MultiPartParser, FormParser)
 
     def get_permissions(self):
         if self.action == 'me':

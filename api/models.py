@@ -17,6 +17,7 @@ class Report(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     location = models.CharField(max_length=200)
+    image = models.ImageField(upload_to='reports/', null=True, blank=True)
     
     PRIORITY_CHOICES = [
         (priority.value, priority.name)
