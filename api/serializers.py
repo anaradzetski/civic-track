@@ -1,5 +1,6 @@
-from .models import Report, User
+from .models import Report, User, Vote
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 from django.contrib.auth.password_validation import validate_password
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -34,10 +35,14 @@ class ReportSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     
+    votes_for = serializers.SerializerMethodField()
+    votes_against = serializers.SerializerMethodField()
+    user_vote_type = serializers.SerializerMethodField()
+    
     class Meta:
         model = Report
-        fields = ['id', 'title', 'description', 'image', 'location', 'priority', 'type', 'status', 'author', 'assigned_unit', 'created_at']
-        read_only_fields = ['status', 'author', 'assigned_unit', 'created_at']
+        fields = ['id', 'title', 'description', 'votes_for', 'votes_against', 'user_vote_type', 'image', 'location', 'priority', 'type', 'status', 'author', 'assigned_unit', 'created_at']
+        read_only_fields = ['status', 'votes_for', 'votes_against', 'user_vote_type', 'author', 'assigned_unit', 'created_at']
 
     def get_author(self, obj):
         if obj.author:
@@ -48,3 +53,33 @@ class ReportSerializer(serializers.ModelSerializer):
         if obj.status:
             return obj.status.status_name
         return ""
+    
+    def get_votes_for(self, obj):
+        return obj.votes.filter(vote_type=1).count()
+    
+    def get_votes_against(self, obj):
+        return obj.votes.filter(vote_type=-1).count()
+    
+    def get_user_vote_type(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            vote = obj.votes.filter(created_by=request.user).first()
+            print(vote)
+            return vote.vote_type if vote else None
+        return None
+    
+class VoteSerializer(serializers.ModelSerializer):
+    created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    class Meta:
+        model = Vote
+        fields = ['id', 'report', 'vote_type', 'created_at', 'created_by']
+        validators = []
+
+    def validate(self, attrs):
+        user = attrs.get('created_by')
+        report = attrs.get('report')
+
+        if Vote.objects.filter(created_by=user, report=report).exists():
+            raise serializers.ValidationError({'message': "You have already voted on this report."})
+        
+        return attrs

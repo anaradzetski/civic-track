@@ -56,3 +56,17 @@ class ReportStatus(models.Model):
     moderator_comment = models.TextField(blank=True, null=True)
     modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     modified_at = models.DateField(auto_now=True)
+
+class Vote(models.Model):
+    VOTE_CHOICES = [
+        (1, 'Upvote'),
+        (-1, 'Downvote')
+    ]
+    
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='votes')
+    vote_type = models.SmallIntegerField(choices=VOTE_CHOICES)
+    created_at = models.DateField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('report', 'created_by')

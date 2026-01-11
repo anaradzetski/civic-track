@@ -1,6 +1,7 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth import authenticate
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -8,10 +9,10 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from api.choices import ReportStatusEnum
 
-from .models import Report, ReportStatus
+from .models import Report, ReportStatus, Vote
 from rest_framework import viewsets
 
-from .serializers import ReportSerializer, SignUpSerializer, SignInSerializer, MeSerializer
+from .serializers import ReportSerializer, SignUpSerializer, SignInSerializer, MeSerializer, VoteSerializer
 
 class SignUpView(generics.CreateAPIView):
     serializer_class = SignUpSerializer
@@ -73,3 +74,19 @@ class ReportViewSet(viewsets.ModelViewSet):
         reports = Report.objects.filter(author=request.user).order_by("-created_at")
         serializer = self.get_serializer(reports, many=True)
         return Response(serializer.data)
+    
+class VoteViewSet(viewsets.ModelViewSet):
+    queryset = Vote.objects.all()
+    serializer_class = VoteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        report_id = self.kwargs.get('pk')
+        return get_object_or_404(
+            Vote,
+            report_id=report_id,
+            created_by=self.request.user
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
