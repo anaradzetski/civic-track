@@ -9,6 +9,9 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ("first_name", "last_name", "username")
 
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
     def __str__(self) -> str:
         return self.email
 
@@ -70,3 +73,10 @@ class Vote(models.Model):
 
     class Meta:
         unique_together = ('report', 'created_by')
+
+class Comment(models.Model):
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='comments')
+    content = models.TextField()
+    is_official_response = models.BooleanField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)

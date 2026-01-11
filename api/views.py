@@ -9,10 +9,10 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from api.choices import ReportStatusEnum
 
-from .models import Report, ReportStatus, Vote
+from .models import Report, ReportStatus, Vote, Comment
 from rest_framework import viewsets
 
-from .serializers import ReportSerializer, SignUpSerializer, SignInSerializer, MeSerializer, VoteSerializer
+from .serializers import CommentSerializer, ReportDetailSerializer, ReportSerializer, SignUpSerializer, SignInSerializer, MeSerializer, VoteSerializer
 
 class SignUpView(generics.CreateAPIView):
     serializer_class = SignUpSerializer
@@ -52,9 +52,19 @@ class MeView(generics.RetrieveUpdateDestroyAPIView):
     retrieve=extend_schema(auth=[{"bearerAuth": []}]),
 )
 class ReportViewSet(viewsets.ModelViewSet):
-    queryset = Report.objects.all().order_by('-created_at')
-    serializer_class = ReportSerializer
+    queryset = Report.objects.all()
     parser_classes = (MultiPartParser, FormParser)
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return ReportDetailSerializer
+        return ReportSerializer
+    
+    def get_queryset(self):
+        queryset = Report.objects.all().order_by('-created_at').prefetch_related('votes', 'author', 'status')
+        if self.action == 'retrieve':
+            queryset = queryset.prefetch_related('comments')
+        return queryset
 
     def get_permissions(self):
         if self.action == 'me':
@@ -90,3 +100,22 @@ class VoteViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        report_id = self.kwargs.get('pk')
+        return get_object_or_404(
+            Comment,
+            report_id=report_id,
+            created_by=self.request.user
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(
+            created_by=self.request.user,
+            is_official_response=False # TODO change when user will have role assigned   
+        )

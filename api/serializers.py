@@ -1,6 +1,5 @@
-from .models import Report, User, Vote
+from .models import Report, User, Vote, Comment
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 from django.contrib.auth.password_validation import validate_password
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -38,11 +37,13 @@ class ReportSerializer(serializers.ModelSerializer):
     votes_for = serializers.SerializerMethodField()
     votes_against = serializers.SerializerMethodField()
     user_vote_type = serializers.SerializerMethodField()
+
+    comment_count = serializers.IntegerField(source='comments.count', read_only=True)
     
     class Meta:
         model = Report
-        fields = ['id', 'title', 'description', 'votes_for', 'votes_against', 'user_vote_type', 'image', 'location', 'priority', 'type', 'status', 'author', 'assigned_unit', 'created_at']
-        read_only_fields = ['status', 'votes_for', 'votes_against', 'user_vote_type', 'author', 'assigned_unit', 'created_at']
+        fields = ['id', 'title', 'description', 'votes_for', 'votes_against', 'user_vote_type', 'comment_count', 'image', 'location', 'priority', 'type', 'status', 'author', 'assigned_unit', 'created_at']
+        read_only_fields = ['status', 'votes_for', 'votes_against', 'user_vote_type', 'comment_count', 'author', 'assigned_unit', 'created_at']
 
     def get_author(self, obj):
         if obj.author:
@@ -67,6 +68,19 @@ class ReportSerializer(serializers.ModelSerializer):
             print(vote)
             return vote.vote_type if vote else None
         return None
+    
+class CommentSerializer(serializers.ModelSerializer):
+    created_by = serializers.ReadOnlyField(source='created_by.get_full_name')
+    class Meta:
+        model = Comment
+        fields = ['id', 'report', 'content', 'is_official_response', 'created_at', 'created_by']
+        read_only_fields = ['is_official_response', 'created_by', 'created_at']
+
+class ReportDetailSerializer(ReportSerializer):
+    comments = CommentSerializer(many=True, read_only=True)
+
+    class Meta(ReportSerializer.Meta):
+        fields = ReportSerializer.Meta.fields + ['comments']
     
 class VoteSerializer(serializers.ModelSerializer):
     created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
