@@ -1,6 +1,7 @@
 from .models import Report, User
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
@@ -33,11 +34,23 @@ class MeSerializer(serializers.ModelSerializer):
 class ReportSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    
+    coordinates = serializers.ListField(
+        child=serializers.FloatField(),
+        write_only=True,
+        min_length=2,
+        max_length=2,
+        required=True,
+        allow_null=False,
+        help_text="Format: [longitude, latitude]"
+    )
+
     class Meta:
         model = Report
-        fields = ['id', 'title', 'description', 'location', 'priority', 'type', 'status', 'author', 'assigned_unit', 'created_at']
-        read_only_fields = ['status', 'author', 'assigned_unit', 'created_at']
+        fields = [
+            'id', 'title', 'description', 'longitude', 'latitude', 'coordinates',
+            'priority', 'type', 'status', 'author', 'assigned_unit', 'created_at'
+        ]
+        read_only_fields = ['longitude', 'latitude', 'status', 'author', 'assigned_unit', 'created_at']
 
     def get_author(self, obj):
         if obj.author:
@@ -48,3 +61,28 @@ class ReportSerializer(serializers.ModelSerializer):
         if obj.status:
             return obj.status.status_name
         return ""
+
+    def create(self, validated_data):
+        coords = validated_data.pop('coordinates')
+        validated_data['longitude'] = coords[0]
+        validated_data['latitude'] = coords[1]
+        return super().create(validated_data)
+
+    def validate_coordinates(self, value):
+        if not value or len(value) != 2:
+            raise serializers.ValidationError("Coordinates must be a list of exactly 2 numbers [longitude, latitude].")
+        
+        longitude, latitude = value
+        
+        try:
+            longitude = float(longitude)
+            latitude = float(latitude)
+        except (TypeError, ValueError):
+            raise serializers.ValidationError("Coordinates must be numeric values.")
+        
+        if not (-180 <= longitude <= 180):
+            raise serializers.ValidationError("Longitude must be between -180 and 180.")
+        if not (-90 <= latitude <= 90):
+            raise serializers.ValidationError("Latitude must be between -90 and 90.")
+        
+        return value
