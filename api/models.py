@@ -18,10 +18,12 @@ class Report(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     longitude = models.FloatField(
-        validators=[MinValueValidator(-180.0), MaxValueValidator(180.0)]
+        validators=[MinValueValidator(-180.0), MaxValueValidator(180.0)],
+        db_default=0.0
     )
     latitude = models.FloatField(
-        validators=[MinValueValidator(-90.0), MaxValueValidator(90.0)]
+        validators=[MinValueValidator(-90.0), MaxValueValidator(90.0)],
+        db_default=0.0
     )
     
     PRIORITY_CHOICES = [
