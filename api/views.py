@@ -106,14 +106,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_object(self):
-        report_id = self.kwargs.get('pk')
-        return get_object_or_404(
-            Comment,
-            report_id=report_id,
-            created_by=self.request.user
-        )
-
     def perform_create(self, serializer):
         serializer.save(
             created_by=self.request.user,

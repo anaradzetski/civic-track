@@ -65,16 +65,16 @@ class ReportSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             vote = obj.votes.filter(created_by=request.user).first()
-            print(vote)
             return vote.vote_type if vote else None
         return None
     
 class CommentSerializer(serializers.ModelSerializer):
     created_by = serializers.ReadOnlyField(source='created_by.get_full_name')
+    author_id = serializers.ReadOnlyField(source='created_by.id')
     class Meta:
         model = Comment
-        fields = ['id', 'report', 'content', 'is_official_response', 'created_at', 'created_by']
-        read_only_fields = ['is_official_response', 'created_by', 'created_at']
+        fields = ['id', 'report', 'content', 'is_official_response', 'created_at', 'created_by', 'author_id']
+        read_only_fields = ['is_official_response', 'created_by', 'created_at', 'author_id']
 
 class ReportDetailSerializer(ReportSerializer):
     comments = CommentSerializer(many=True, read_only=True)
