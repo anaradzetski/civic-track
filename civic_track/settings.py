@@ -132,9 +132,9 @@ WSGI_APPLICATION = 'civic_track.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ["POSTGRES_DB"],
-        'USER': os.environ["POSTGRES_USER"],
-        'PASSWORD': os.environ["POSTGRES_PASSWORD"],
+        'NAME': os.environ.get("POSTGRES_DB", "dev-postgres-db"),
+        'USER': os.environ.get("POSTGRES_USER", "dev-postgres-user"),
+        'PASSWORD': os.environ.get("POSTGRES_PASSWORD", "dev-postgres-password"),
         "HOST": "db",
         "PORT": "5432",
     }
