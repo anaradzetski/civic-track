@@ -52,7 +52,7 @@ class ReportSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Report
-        fields = ['id', 'title', 'description', 'longitude', 'latitude', 'coordinates', 'votes_for', 'votes_against', 'user_vote_type', 'comment_count', 'image', 'priority', 'type', 'status', 'author', 'assigned_unit', 'created_at']
+        fields = ['id', 'title', 'description', 'longitude', 'latitude', 'coordinates', 'location', 'votes_for', 'votes_against', 'user_vote_type', 'comment_count', 'image', 'priority', 'type', 'status', 'author', 'assigned_unit', 'created_at']
         read_only_fields = ['longitude', 'latitude', 'status', 'votes_for', 'votes_against', 'user_vote_type', 'comment_count', 'author', 'assigned_unit', 'created_at']
 
     def get_author(self, obj):

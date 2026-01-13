@@ -21,6 +21,7 @@ class Report(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     image = models.ImageField(upload_to='reports/', null=True, blank=True)
+    location = models.CharField(max_length=200, db_default='')
     longitude = models.FloatField(
         validators=[MinValueValidator(-180.0), MaxValueValidator(180.0)],
         db_default=0.0
